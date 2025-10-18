@@ -19,6 +19,7 @@ export const AuthButton: React.FC = () => {
   const [signInWithGoogle, googleUser, googleLoading, googleError] = useSignInWithGoogle(auth);
   const [signOut, signOutLoading, signOutError] = useSignOut(auth);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [isSigningIn, setIsSigningIn] = React.useState(false);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -33,8 +34,27 @@ export const AuthButton: React.FC = () => {
     handleClose();
   };
 
+  const handleSignIn = async () => {
+    setIsSigningIn(true);
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Sign in error:', error);
+    } finally {
+      // Reset loading state after a timeout to handle user cancellation
+      setTimeout(() => setIsSigningIn(false), 2000);
+    }
+  };
+
+  // Reset signing in state when user successfully signs in
+  React.useEffect(() => {
+    if (user) {
+      setIsSigningIn(false);
+    }
+  }, [user]);
+
   // Loading state
-  if (loading || googleLoading || signOutLoading) {
+  if (loading || (googleLoading && isSigningIn) || signOutLoading) {
     return <CircularProgress size={24} />;
   }
 
@@ -101,8 +121,9 @@ export const AuthButton: React.FC = () => {
   return (
     <Button
       variant="outlined"
-      startIcon={<GoogleIcon />}
-      onClick={() => signInWithGoogle()}
+      startIcon={isSigningIn ? <CircularProgress size={16} /> : <GoogleIcon />}
+      onClick={handleSignIn}
+      disabled={isSigningIn}
       sx={{
         borderColor: 'primary.main',
         color: 'primary.main',
@@ -112,7 +133,7 @@ export const AuthButton: React.FC = () => {
         }
       }}
     >
-      התחבר עם Google
+      {isSigningIn ? 'מתחבר...' : 'התחבר עם Google'}
     </Button>
   );
 };

@@ -19,6 +19,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 
 // Components
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function App() {
   const { i18n } = useTranslation();
@@ -67,6 +68,8 @@ function App() {
             position: 'relative',
             overflow: 'hidden',
             transition: 'background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+            display: 'flex',
+            flexDirection: 'column',
             '&::before': {
               content: '""',
               position: 'fixed',
@@ -285,7 +288,7 @@ function App() {
               backdropFilter: 'blur(10px)',
               borderRadius: { xs: 0, sm: '16px 16px 0 0' },
               mx: { xs: 0, sm: 1, md: 2 },
-              minHeight: 'calc(100vh - 80px)',
+              flex: 1,
             }}>
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -295,6 +298,7 @@ function App() {
                 <Route path="/trip/:tripId/edit" element={<EditTripPage />} />
               </Routes>
             </Box>
+            <Footer />
           </Box>
         </Router>
         </FirebaseProvider>
