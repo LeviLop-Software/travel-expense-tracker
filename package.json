@@ -45,7 +45,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
-  "homepage": "./",
+  "homepage": "https://levilop-software.github.io/travel-expense-tracker",
   "eslintConfig": {
     "extends": [
       "react-app",

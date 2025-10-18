@@ -26,6 +26,9 @@ function App() {
   const darkMode = useAppStore(state => state.darkMode);
   const language = useAppStore(state => state.language);
   
+  // Determine basename for GitHub Pages deployment
+  const basename = process.env.NODE_ENV === 'production' ? '/travel-expense-tracker' : '';
+  
   // Update i18n language when store language changes
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -61,7 +64,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <FirebaseProvider>
-          <Router>
+          <Router basename={basename}>
           <Box sx={{ 
             minHeight: '100vh',
             backgroundColor: 'background.default',

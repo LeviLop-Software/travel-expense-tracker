@@ -370,7 +370,7 @@ const Home: React.FC = () => {
     );
   }
 
-  if (tripSummaries.length === 0) {
+  if (!tripSummaries || tripSummaries.length === 0) {
     return (
       <Container maxWidth="lg">
         <Box
