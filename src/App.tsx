@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box, createTheme } from '@mui/material';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppStore } from './store/firebaseStore';
 import { FirebaseProvider } from './providers/FirebaseProvider';
 import { lightTheme, darkTheme } from './theme';
+import { startNewSession, trackLanguageChanged } from './utils/analytics';
 import './i18n'; // Initialize i18n
 
 // Pages
@@ -21,6 +22,27 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
+// Analytics tracking component
+function AnalyticsTracker() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Track page views
+    if (typeof window !== 'undefined') {
+      const path = location.pathname;
+      import('./utils/analytics').then(({ trackEvent }) => {
+        trackEvent('page_view', {
+          page_path: path,
+          page_title: document.title,
+          timestamp: new Date().toISOString()
+        });
+      });
+    }
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   const { i18n } = useTranslation();
   const darkMode = useAppStore(state => state.darkMode);
@@ -32,7 +54,23 @@ function App() {
   // Update i18n language when store language changes
   useEffect(() => {
     i18n.changeLanguage(language);
+    trackLanguageChanged(language);
   }, [language, i18n]);
+
+  // Start analytics session on app load
+  useEffect(() => {
+    startNewSession();
+    
+    // Track when user leaves
+    const handleBeforeUnload = () => {
+      import('./utils/analytics').then(({ trackSessionEnd }) => {
+        trackSessionEnd();
+      });
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   // Create emotion cache for RTL
   const cacheRtl = createCache({
@@ -65,7 +103,8 @@ function App() {
         <CssBaseline />
         <FirebaseProvider>
           <Router basename={basename}>
-          <Box sx={{ 
+            <AnalyticsTracker />
+            <Box sx={{ 
             minHeight: '100vh',
             backgroundColor: 'background.default',
             position: 'relative',

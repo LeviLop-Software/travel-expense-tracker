@@ -13,6 +13,7 @@ import {
 import { Google as GoogleIcon, AccountCircle, ExitToApp } from '@mui/icons-material';
 import { useAuthState, useSignInWithGoogle, useSignOut } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
+import { trackUserLogin } from '../utils/analytics';
 
 export const AuthButton: React.FC = () => {
   const [user, loading, error] = useAuthState(auth);
@@ -38,6 +39,7 @@ export const AuthButton: React.FC = () => {
     setIsSigningIn(true);
     try {
       await signInWithGoogle();
+      trackUserLogin('google');
     } catch (error) {
       console.error('Sign in error:', error);
     } finally {

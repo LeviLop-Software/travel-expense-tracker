@@ -32,6 +32,7 @@ import {
   CATEGORY_EMOJIS
 } from '../types';
 import { detectCategoryFromDescription } from '../utils/aiHelpers';
+import { trackExpenseAdded, trackExpenseEdited, trackAIUsage } from '../utils/analytics';
 
 interface ExpenseFormProps {
   open: boolean;
@@ -159,6 +160,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           if (detectedCat && detectedCat !== 'misc') {
             setFormData(prev => ({ ...prev, category: detectedCat }));
             setDetectedCategory(detectedCat);
+            trackAIUsage('categorization');
           }
         } catch (error) {
           console.error('Category detection error:', error);
@@ -185,6 +187,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       if (detectedCat && detectedCat !== 'misc') {
         setFormData(prev => ({ ...prev, category: detectedCat }));
         setDetectedCategory(detectedCat);
+        trackAIUsage('categorization');
       } else {
         // אם לא זוהה כלום, קבע "שונות"
         setFormData(prev => ({ ...prev, category: 'misc' as ExpenseCategory }));
@@ -299,6 +302,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
     if (expenseToEdit) {
       updateExpense(expenseToEdit.id, expenseData);
+      trackExpenseEdited(formData.category);
       // Check if this is a cash expense change
       if (formData.paymentMethod === 'cash' || expenseToEdit.paymentMethod === 'cash') {
         if (onCashExpenseChanged) {
@@ -308,6 +312,13 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     } else {
       addExpense(expenseData);
       console.log('Expense added successfully');
+      trackExpenseAdded({
+        category: formData.category,
+        amount: finalAmount,
+        currency: tripCurrency,
+        isShared: formData.isShared,
+        hasReceipt: !!formData.receiptUrl
+      });
       // Check if this is a new cash expense
       if (formData.paymentMethod === 'cash' && onCashExpenseChanged) {
         onCashExpenseChanged();

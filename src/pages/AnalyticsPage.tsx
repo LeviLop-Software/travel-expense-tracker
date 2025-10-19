@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   Container,
@@ -21,12 +21,18 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store/firebaseStore';
 import { CURRENCY_SYMBOLS } from '../types';
+import { trackAnalyticsViewed } from '../utils/analytics';
 
 const AnalyticsPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const trips = useAppStore(state => state.trips);
   const getExpensesByTrip = useAppStore(state => state.getExpensesByTrip);
+
+  // Track analytics page view
+  useEffect(() => {
+    trackAnalyticsViewed('overview');
+  }, []);
 
   // Calculate overall statistics
   const totalTrips = trips.length;

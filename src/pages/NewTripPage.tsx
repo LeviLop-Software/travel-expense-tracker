@@ -24,6 +24,7 @@ import { useAppStore } from '../store/firebaseStore';
 import { Currency, CURRENCIES, CURRENCY_SYMBOLS } from '../types';
 import { parseDestinations } from '../utils/countryFlags';
 import { detectCountryWithAI } from '../utils/aiHelpers';
+import { trackTripCreated } from '../utils/analytics';
 
 const NewTripPage: React.FC = () => {
   const navigate = useNavigate();
@@ -173,7 +174,7 @@ const NewTripPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const destinations = parseDestinations(formData.destination.trim());
-      addTrip({
+      const tripData = {
         name: formData.name.trim(),
         destination: formData.destination.trim(),
         destinations: destinations.length > 1 ? destinations : undefined,
@@ -184,6 +185,16 @@ const NewTripPage: React.FC = () => {
         isOpenBudget: formData.isOpenBudget,
         initialCash: parseFloat(formData.initialCash),
         notes: formData.notes.trim() || undefined,
+      };
+      
+      addTrip(tripData);
+      
+      // Track trip creation
+      trackTripCreated({
+        destination: formData.destination.trim(),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        currency: formData.currency
       });
 
       navigate('/');
