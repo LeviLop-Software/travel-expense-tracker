@@ -198,7 +198,7 @@ export const detectCountryWithAI = async (destination: string): Promise<CountryI
 // מילות מפתח לקטגוריות
 const categoryKeywords: { [key in ExpenseCategory]: string[] } = {
   flight: ['טיסה', 'flight', 'אל על', 'elal', 'wizz', 'ryanair', 'easyjet', 'טיסות', 'כרטיס טיסה', 'plane', 'airplane', 'טיסת'],
-  hotel: ['מלון', 'hotel', 'אירוח', 'לינה', 'נופש', 'resort', 'airbnb', 'booking', 'hostel', 'inn', 'suite', 'חדר'],
+  accommodation: ['מלון', 'hotel', 'אירוח', 'לינה', 'נופש', 'resort', 'airbnb', 'booking', 'hostel', 'inn', 'suite', 'חדר'],
   food: ['אוכל', 'מסעדה', 'food', 'restaurant', 'ארוחה', 'ארוחת', 'ארוחות', 'קפה', 'coffee', 'bar', 'פיצה', 'pizza', 'שתייה', 'drink', 'מקדונלדס', 'burger', 'breakfast', 'lunch', 'dinner', 'ארוחת בקר', 'ארוחת צהרים', 'ארוחת ערב'],
   transport: ['תחבורה', 'transport', 'אוטובוס', 'bus', 'רכבת', 'train', 'מונית', 'taxi', 'uber', 'דלק', 'gas', 'חנייה', 'parking', 'רכב', 'car', 'השכרת רכב', 'rental', 'נסיעה'],
   insurance: ['ביטוח', 'insurance', 'ביטוח נסיעות', 'travel insurance', 'ביטוח רפואי', 'health insurance'],
@@ -239,14 +239,14 @@ export const detectCategoryFromDescription = async (description: string): Promis
       }
     });
 
-    const prompt = `סווג הוצאה: "${description}". קטגוריות: flight, hotel, food, transport, insurance, activity, misc. החזר רק שם הקטגוריה.`;
+    const prompt = `סווג הוצאה: "${description}". קטגוריות: flight, accommodation, food, transport, insurance, activity, misc. החזר רק שם הקטגוריה.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const category = response.text().trim().toLowerCase();
     
     // ודא שהקטגוריה חוקית
-    const validCategories: ExpenseCategory[] = ['flight', 'hotel', 'food', 'transport', 'insurance', 'activity', 'misc'];
+    const validCategories: ExpenseCategory[] = ['flight', 'accommodation', 'food', 'transport', 'insurance', 'activity', 'misc'];
     if (validCategories.includes(category as ExpenseCategory)) {
       console.log('✅ AI Category detected:', category);
       return category as ExpenseCategory;

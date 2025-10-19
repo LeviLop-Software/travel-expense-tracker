@@ -223,7 +223,7 @@ const he = {
     addFirstExpense: 'הוסף הוצאה ראשונה',
     categories: {
       flight: 'טיסה',
-      hotel: 'מלון',
+      accommodation: 'לינה',
       food: 'אוכל ומסעדות',
       transport: 'תחבורה',
       insurance: 'ביטוח',
@@ -258,7 +258,7 @@ const he = {
   },
   categories: {
     flight: 'טיסה',
-    hotel: 'מלון',
+    accommodation: 'לינה',
     food: 'אוכל ומסעדות',
     transport: 'תחבורה',
     insurance: 'ביטוח',
@@ -506,7 +506,7 @@ const en = {
     addFirstExpense: 'Add First Expense',
     categories: {
       flight: 'Flight',
-      hotel: 'Hotel',
+      accommodation: 'Accommodation',
       food: 'Food & Dining',
       transport: 'Transportation',
       insurance: 'Insurance',
@@ -541,7 +541,7 @@ const en = {
   },
   categories: {
     flight: 'Flight',
-    hotel: 'Hotel',
+    accommodation: 'Accommodation',
     food: 'Food & Dining',
     transport: 'Transportation',
     insurance: 'Insurance',

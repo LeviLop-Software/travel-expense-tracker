@@ -1,6 +1,6 @@
 export type ExpenseCategory = 
   | 'flight'
-  | 'hotel'
+  | 'accommodation'
   | 'food'
   | 'transport'
   | 'insurance'
@@ -136,7 +136,7 @@ export interface AppState {
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'flight',
-  'hotel', 
+  'accommodation', 
   'food',
   'transport',
   'insurance',
@@ -158,7 +158,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
 
 export const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
   flight: '#FF6B6B',
-  hotel: '#4ECDC4',
+  accommodation: '#4ECDC4',
   food: '#45B7D1',
   transport: '#96CEB4',
   insurance: '#FFEAA7',
@@ -168,7 +168,7 @@ export const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
 
 export const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   flight: 'Flight',
-  hotel: 'Hotel',
+  accommodation: 'Accommodation',
   food: 'Food & Dining',
   transport: 'Transportation',
   insurance: 'Insurance',
@@ -178,7 +178,7 @@ export const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
 
 export const CATEGORY_EMOJIS: Record<ExpenseCategory, string> = {
   flight: '✈️',
-  hotel: '🏨',
+  accommodation: '🏨',
   food: '🍽️',
   transport: '🚗',
   insurance: '🛡️',

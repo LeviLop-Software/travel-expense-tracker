@@ -28,7 +28,7 @@ import { CATEGORY_EMOJIS, CURRENCY_SYMBOLS, ExpenseCategory, Expense } from '../
 
 const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
   flight: '#FF6384',
-  hotel: '#36A2EB',
+  accommodation: '#36A2EB',
   food: '#FFCE56',
   transport: '#4BC0C0',
   insurance: '#9966FF',
@@ -70,7 +70,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ tripId }) => {
     // Calculate expenses by category
     const expensesByCategory: Record<ExpenseCategory, number> = {
       flight: 0,
-      hotel: 0,
+      accommodation: 0,
       food: 0,
       transport: 0,
       insurance: 0,
