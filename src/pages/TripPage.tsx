@@ -241,11 +241,16 @@ const TripPage: React.FC = () => {
     }
   };
 
-  const getTripStatus = (startDate: Date, endDate: Date): 'upcoming' | 'active' | 'ended' => {
+  const getTripStatus = (startDate: Date | string, endDate: Date | string): 'upcoming' | 'active' | 'ended' => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tripStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const tripEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    
+    // Convert to Date objects if they're strings (from localStorage)
+    const startDateObj = startDate instanceof Date ? startDate : new Date(startDate);
+    const endDateObj = endDate instanceof Date ? endDate : new Date(endDate);
+    
+    const tripStart = new Date(startDateObj.getFullYear(), startDateObj.getMonth(), startDateObj.getDate());
+    const tripEnd = new Date(endDateObj.getFullYear(), endDateObj.getMonth(), endDateObj.getDate());
 
     if (today < tripStart) {
       return 'upcoming';
@@ -534,11 +539,23 @@ const TripPage: React.FC = () => {
             expensesByCategory: expenses.reduce((acc, expense) => {
               const category = expense.category;
               if (!acc[category]) {
-                acc[category] = [];
+                acc[category] = 0;
               }
-              acc[category].push(expense);
+              acc[category] += expense.amount;
               return acc;
-            }, {} as Record<string, typeof expenses>)
+            }, {} as Record<string, number>),
+            dailyExpenses: Object.entries(
+              expenses.reduce((acc, expense) => {
+                const dateKey = expense.date instanceof Date 
+                  ? expense.date.toISOString().split('T')[0]
+                  : new Date(expense.date).toISOString().split('T')[0];
+                if (!acc[dateKey]) {
+                  acc[dateKey] = 0;
+                }
+                acc[dateKey] += expense.amount;
+                return acc;
+              }, {} as Record<string, number>)
+            ).map(([date, amount]) => ({ date, amount }))
           }} />
         )}
         

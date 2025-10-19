@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store/firebaseStore';
+import { useAuth } from '../providers/FirebaseProvider';
 import { 
   Currency, 
   ExpenseCategory, 
@@ -48,6 +49,9 @@ interface ExpenseFormProps {
     description?: string;
     notes?: string;
     receiptUrl?: string;
+    isShared?: boolean;
+    numberOfPeople?: number;
+    totalAmountBeforeSharing?: number;
   } | null;
   onCashExpenseChanged?: () => void;
 }
@@ -61,6 +65,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   onCashExpenseChanged
 }) => {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const addExpense = useAppStore(state => state.addExpense);
   const updateExpense = useAppStore(state => state.updateExpense);
 
@@ -77,6 +82,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     notes: expenseToEdit?.notes || '',
     receiptUrl: expenseToEdit?.receiptUrl || '',
     useDifferentCurrency: false,
+    isShared: false,
+    numberOfPeople: '2', // Default to 2 people (user + 1 other)
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -86,10 +93,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   useEffect(() => {
     if (expenseToEdit) {
       const expenseDate = expenseToEdit.date instanceof Date ? expenseToEdit.date : new Date(expenseToEdit.date);
+      // For shared expenses, show the original amount before sharing for editing
+      const displayAmount = expenseToEdit.isShared && expenseToEdit.totalAmountBeforeSharing 
+        ? expenseToEdit.totalAmountBeforeSharing 
+        : expenseToEdit.amount;
+      
       setFormData({
         date: expenseDate.toISOString().split('T')[0],
         category: expenseToEdit.category,
-        amount: expenseToEdit.amount.toString(),
+        amount: displayAmount.toString(),
         originalAmount: expenseToEdit.originalAmount?.toString() || '',
         originalCurrency: expenseToEdit.originalCurrency || tripCurrency,
         paymentMethod: expenseToEdit.paymentMethod || 'credit',
@@ -97,6 +109,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         notes: expenseToEdit.notes || '',
         receiptUrl: expenseToEdit.receiptUrl || '',
         useDifferentCurrency: !!expenseToEdit.originalCurrency,
+        isShared: expenseToEdit.isShared || false,
+        numberOfPeople: expenseToEdit.numberOfPeople?.toString() || '2',
       });
     } else {
       setFormData({
@@ -110,6 +124,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         notes: '',
         receiptUrl: '',
         useDifferentCurrency: false,
+        isShared: false,
+        numberOfPeople: '2',
       });
       setErrors({});
     }
@@ -216,6 +232,14 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       newErrors.receiptUrl = t('form.invalidUrl');
     }
 
+    // Validate number of people for shared expenses
+    if (formData.isShared) {
+      const numPeople = parseInt(formData.numberOfPeople);
+      if (!numPeople || numPeople < 2) {
+        newErrors.numberOfPeople = 'מספר האנשים חייב להיות לפחות 2';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -230,12 +254,29 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     let finalAmount = parseFloat(formData.amount);
     let originalAmount = undefined;
     let originalCurrency = undefined;
+    let totalAmountBeforeSharing = undefined;
 
     if (formData.useDifferentCurrency) {
       originalAmount = parseFloat(formData.originalAmount);
       originalCurrency = formData.originalCurrency;
       // Convert to trip currency
       finalAmount = convertCurrency(originalAmount, formData.originalCurrency, tripCurrency);
+    }
+
+    // Handle shared expenses
+    if (formData.isShared) {
+      const numberOfPeople = parseInt(formData.numberOfPeople);
+      totalAmountBeforeSharing = finalAmount; // Store original amount before division
+      finalAmount = finalAmount / numberOfPeople; // Split the amount
+      
+      // Add note about sharing if no notes exist
+      const sharingInfo = `סכום כולל לפני חלוקה: ${CURRENCY_SYMBOLS[tripCurrency]}${totalAmountBeforeSharing.toFixed(2)} (חולק ל-${numberOfPeople} אנשים)`;
+      const existingNotes = formData.notes.trim();
+      const updatedNotes = existingNotes 
+        ? `${existingNotes}\n\n${sharingInfo}`
+        : sharingInfo;
+      
+      formData.notes = updatedNotes;
     }
 
     const expenseData = {
@@ -249,6 +290,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       description: formData.description.trim() || undefined,
       notes: formData.notes.trim() || undefined,
       receiptUrl: formData.receiptUrl.trim() || undefined,
+      isShared: formData.isShared || undefined,
+      numberOfPeople: formData.isShared ? parseInt(formData.numberOfPeople) : undefined,
+      totalAmountBeforeSharing: totalAmountBeforeSharing,
     };
 
     console.log('Creating expense with data:', expenseData);
@@ -280,6 +324,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         notes: '',
         receiptUrl: '',
         useDifferentCurrency: false,
+        isShared: false,
+        numberOfPeople: '2',
       });
       setErrors({});
     }
@@ -295,6 +341,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+          {/* Offline mode warning */}
+          {!isAuthenticated && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                {t('expense.form.offlineMode')}
+              </Typography>
+            </Alert>
+          )}
+          
           <TextField
             label={t('common.date')}
             type="date"
@@ -369,6 +424,51 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
               />
             </RadioGroup>
           </FormControl>
+
+          {/* Shared Expense Toggle */}
+          <FormControl component="fieldset">
+            <Typography variant="subtitle2" gutterBottom>
+              🤝 הוצאה משותפת
+            </Typography>
+            <RadioGroup
+              value={formData.isShared ? 'shared' : 'personal'}
+              onChange={(e) => {
+                const isShared = e.target.value === 'shared';
+                handleInputChange('isShared', isShared);
+                if (!isShared) {
+                  handleInputChange('numberOfPeople', '2');
+                }
+              }}
+              row
+            >
+              <FormControlLabel
+                value="personal"
+                control={<Radio />}
+                label="הוצאה אישית"
+              />
+              <FormControlLabel
+                value="shared"
+                control={<Radio />}
+                label="הוצאה משותפת עם חברים"
+              />
+            </RadioGroup>
+          </FormControl>
+
+          {/* Number of People - only show if shared */}
+          {formData.isShared && (
+            <TextField
+              label="מספר אנשים (כולל אתה)"
+              type="number"
+              value={formData.numberOfPeople}
+              onChange={(e) => handleInputChange('numberOfPeople', e.target.value)}
+              error={!!errors.numberOfPeople}
+              helperText={errors.numberOfPeople || 'לדוגמה: 3 אנשים = אתה + 2 חברים'}
+              InputProps={{
+                inputProps: { min: 2, max: 20 }
+              }}
+              fullWidth
+            />
+          )}
 
           {/* Currency Conversion Toggle */}
           <FormControl component="fieldset">

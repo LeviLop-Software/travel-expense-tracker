@@ -80,6 +80,9 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ tripId, onExpenseClick }) => 
         originalCurrency: expense.originalCurrency,
         notes: expense.notes,
         receiptUrl: expense.receiptUrl,
+        isShared: expense.isShared,
+        numberOfPeople: expense.numberOfPeople,
+        totalAmountBeforeSharing: expense.totalAmountBeforeSharing,
       });
       setExpenseFormOpen(true);
     }
@@ -193,6 +196,25 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ tripId, onExpenseClick }) => 
                             }}
                           />
                         </Tooltip>
+                        {expense.isShared && (
+                          <Tooltip 
+                            title={`הוצאה משותפת עם ${expense.numberOfPeople} אנשים${expense.totalAmountBeforeSharing ? ` • סכום כולל: ${currencySymbol}${expense.totalAmountBeforeSharing.toFixed(2)}` : ''}`}
+                            placement="top"
+                            arrow
+                          >
+                            <Chip
+                              label={`🤝 ${expense.numberOfPeople}`}
+                              size="small"
+                              color="secondary"
+                              variant="outlined"
+                              sx={{
+                                cursor: 'help',
+                                borderStyle: 'dashed',
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Tooltip>
+                        )}
                         <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
                           {currencySymbol}{expense.amount.toFixed(2)}
                         </Typography>

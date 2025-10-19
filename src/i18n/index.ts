@@ -229,6 +229,9 @@ const he = {
       insurance: 'ביטוח',
       activity: 'פעילויות',
       misc: 'שונות'
+    },
+    form: {
+      offlineMode: 'אתה עובד במצב לא מחובר. הנתונים יישמרו מקומית ולא יסתנכרנו עם הענן עד להתחברות.'
     }
   },
   analytics: {
@@ -509,6 +512,9 @@ const en = {
       insurance: 'Insurance',
       activity: 'Activities',
       misc: 'Miscellaneous'
+    },
+    form: {
+      offlineMode: 'You are working in offline mode. Data will be saved locally and will not sync to the cloud until you sign in.'
     }
   },
   analytics: {

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-// import { persist, createJSONStorage } from 'zustand/middleware'; // DISABLED
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { User } from 'firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
@@ -119,8 +119,7 @@ interface FirebaseAppState extends Omit<AppState, 'addTrip' | 'updateTrip' | 'de
 }
 
 export const useAppStore = create<FirebaseAppState>()(
-  // PERSISTENCE TEMPORARILY DISABLED TO STOP INFINITE LOOP
-  // persist(
+  persist(
     (set, get) => ({
       // State
       trips: [],
@@ -142,27 +141,18 @@ export const useAppStore = create<FirebaseAppState>()(
           console.log('🔑 User logged in, loading data from Firestore (manual sync)');
           get().loadUserDataFromFirestore();
         } else if (!user && previousUser) {
-          // USER LOGGED OUT - Clear loading state
-          console.log('🚪 User logged out, clearing loading state');
+          // USER LOGGED OUT - Don't clear data, keep using local storage
+          console.log('🚪 User logged out, keeping local data');
           set({ 
             isLoading: false, 
-            isDataSynced: true  // No need to sync when not logged in
+            isDataSynced: true  // Local data is always "synced"
           });
         } else if (!user && !previousUser) {
-          // NO USER FROM START - Clear loading state  
-          console.log('👤 No user, clearing initial loading state');
+          // NO USER FROM START - Use local data
+          console.log('👤 No user, using local data');
           set({ 
             isLoading: false, 
-            isDataSynced: true
-          });
-        } else if (previousUser !== null) {
-          // Only clear data when user actually logs out (not on initial load)
-          console.log('User logged out, clearing data');
-          set({ 
-            trips: [], 
-            expenses: [], 
-            isDataSynced: false,
-            syncError: null 
+            isDataSynced: true  // Local data is always "synced"
           });
         }
       },
@@ -354,7 +344,18 @@ export const useAppStore = create<FirebaseAppState>()(
 
       updateExpense: async (id, updates) => {
         const { user } = get();
-        if (!user) throw new Error('User must be authenticated');
+        
+        if (!user) {
+          // User not logged in - only update local state
+          set((state) => ({
+            expenses: state.expenses.map(expense =>
+              expense.id === id
+                ? { ...expense, ...updates, updatedAt: new Date() }
+                : expense
+            ),
+          }));
+          return;
+        }
 
         set({ isLoading: true, syncError: null });
         
@@ -678,9 +679,48 @@ export const useAppStore = create<FirebaseAppState>()(
           return calculateTripSummary(trip, tripExpenses);
         });
       },
-    })
-    // PERSISTENCE COMPLETELY DISABLED TO PREVENT INFINITE LOOPS
-  );
+    }),
+    {
+      name: 'travel-expense-tracker-firebase-store',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        trips: state.trips,
+        expenses: state.expenses,
+        darkMode: state.darkMode,
+        language: state.language,
+        // Don't persist Firebase-specific state to avoid loops
+        // user, isLoading, isDataSynced, syncError are not persisted
+      }),
+      // Handle date deserialization when loading from localStorage
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // Convert date strings back to Date objects for trips
+          if (state.trips) {
+            state.trips = state.trips.map(trip => ({
+              ...trip,
+              startDate: new Date(trip.startDate),
+              endDate: new Date(trip.endDate),
+              createdAt: new Date(trip.createdAt),
+              updatedAt: new Date(trip.updatedAt),
+            }));
+          }
+          
+          // Convert date strings back to Date objects for expenses
+          if (state.expenses) {
+            state.expenses = state.expenses.map(expense => ({
+              ...expense,
+              date: new Date(expense.date),
+              createdAt: new Date(expense.createdAt),
+              updatedAt: new Date(expense.updatedAt),
+            }));
+          }
+        }
+      },
+      // Add version to handle migrations if needed
+      version: 1,
+    }
+  )
+);
 
 // Hook to automatically sync user state with Firebase auth
 export const useAuthSync = () => {

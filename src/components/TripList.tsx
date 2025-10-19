@@ -40,11 +40,16 @@ const TripList: React.FC<TripListProps> = ({ trips }) => {
 
   const dateLocale = language === 'he' ? he : enUS;
 
-  const getTripStatus = (startDate: Date, endDate: Date): 'upcoming' | 'active' | 'ended' => {
+  const getTripStatus = (startDate: Date | string, endDate: Date | string): 'upcoming' | 'active' | 'ended' => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tripStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const tripEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    
+    // Convert to Date objects if they're strings (from localStorage)
+    const startDateObj = startDate instanceof Date ? startDate : new Date(startDate);
+    const endDateObj = endDate instanceof Date ? endDate : new Date(endDate);
+    
+    const tripStart = new Date(startDateObj.getFullYear(), startDateObj.getMonth(), startDateObj.getDate());
+    const tripEnd = new Date(endDateObj.getFullYear(), endDateObj.getMonth(), endDateObj.getDate());
 
     if (today < tripStart) {
       return 'upcoming';

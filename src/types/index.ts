@@ -36,6 +36,9 @@ export interface Expense {
   notes?: string;
   receiptUrl?: string;
   location?: MapLocation;
+  isShared?: boolean; // Whether this expense is shared with others
+  numberOfPeople?: number; // Number of people sharing the expense (including the user)
+  totalAmountBeforeSharing?: number; // The full amount before splitting
   createdAt: Date;
   updatedAt: Date;
 }
