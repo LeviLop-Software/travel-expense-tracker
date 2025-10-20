@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Travel Expenses",
+  "name": "Travel Expense Tracker - מעקב הוצאות נסיעה",
+  "description": "Smart travel expense tracking with shared expenses, analytics and offline support",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +9,79 @@
       "type": "image/x-icon"
     },
     {
+      "src": "travel-favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "./",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "display_override": ["window-controls-overlay"],
+  "theme_color": "#1976d2",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "lang": "he",
+  "categories": ["finance", "travel", "productivity"],
+  "screenshots": [
+    {
+      "src": "logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "הוסף הוצאה",
+      "short_name": "הוצאה חדשה",
+      "description": "הוסף הוצאה חדשה במהירות",
+      "url": "./?shortcut=add-expense",
+      "icons": [
+        {
+          "src": "travel-favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "נסיעה חדשה", 
+      "short_name": "נסיעה",
+      "description": "צור נסיעה חדשה",
+      "url": "./trip/new",
+      "icons": [
+        {
+          "src": "travel-favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "אנליטיקה",
+      "short_name": "ניתוח",
+      "description": "צפה בדוחות ואנליטיקה",
+      "url": "./analytics",
+      "icons": [
+        {
+          "src": "travel-favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
 }
